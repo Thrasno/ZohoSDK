@@ -171,6 +171,7 @@
             return $result;
         }
 
+        //TODO:Añadir Bucle para actualizar +200registros
         public function updateRecords($report, $criteria, $data, $process_until_limit = true, $fields = array(), $message = true, $tasks= true) {
 
             $result = array("fields" => $fields, "message" => $message, "tasks" => $tasks);
@@ -192,6 +193,7 @@
             return $result;
         }
 
+        //TODO: Añadir bucle para borrar +200 registros
         public function deleteRecords($report, $criteria, $process_until_limit = true, $message = true, $tasks = true) {
 
             $result = array("message" => $message, "tasks" => $tasks);
