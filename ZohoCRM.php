@@ -282,7 +282,6 @@
             return $result;
         }
 
-        //NOT TESTED
         public function searchRecords($module, $criteria, $page = 1, $per_page = 200) {
 
             $datosCompletos = array();
@@ -296,14 +295,14 @@
                 $resultNoFormatted = $this->callCurl($url, "GET", array($authorization), 0 );
                 $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
                 $result = json_decode($json, true);
-                if (!$result["error"] && isset($result["response"]["data"])){
-                    foreach ($result["response"]["data"] as $data){
+                if (!$result["error"] && isset($result["data"])){
+                    foreach ($result["data"] as $data){
                         $datosCompletos[]=$data;
                     }
                 }
                 $page++;
                 usleep(600000);//Pausa de 0.6s para no bloquear la API.
-            } while (isset($result["response"]["info"]["more_records"]) && $result["response"]["info"]["more_records"] == 1);
+            } while (isset($result["info"]["more_records"]) && $result["info"]["more_records"] == 1);
             
             return $datosCompletos;
         }
