@@ -12,6 +12,7 @@
         private $expires_accesstoken = 0;
         private $workspace_id;
         private $org_id;
+        
         public function __construct($client_id, $client_secret, $refreshToken, $access_token, $workspace_id, $location, $org_id) {
 
             /*if(version_compare(phpversion(), '5.6', '<')) {
