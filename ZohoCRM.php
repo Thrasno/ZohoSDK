@@ -12,7 +12,6 @@
         private $version = "v3";
         private $sandbox = "";
 
-        //TODO: Estudiar si usar config o dejarlo como está (Pensar nº de parametros / lio que puede ser usar fichero config) 
         public function __construct($client_id, $client_secret, $refreshToken, $access_token, $userIdentifier, $location, $version = null) {
 
             /*if(version_compare(phpversion(), '5.6', '<')) {
@@ -42,7 +41,6 @@
             }
         }
 
-        //TODO: Si se usa config, escribir en el fichero el nuevo token y la nueva hora de expirado.
         public function getAccessToken() {
 
             //Recoger acces token
@@ -284,40 +282,56 @@
             return $result;
         }
 
-        //TODO: Meter paginación y poner minisleep
+        //NOT TESTED
         public function searchRecords($module, $criteria, $page = 1, $per_page = 200) {
+
+            $datosCompletos = array();
 
             if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time() && false) {
                 $this->getAccessToken();
             }
-
-            $url = "https://" . $this->sandbox . "zohoapis." . $this->location . "/crm/" . $this->version . "/" . $module . "/search?criteria=" . $criteria . "&page=" . $page . "&per_page=" . $per_page;
-            $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
-
-            $resultNoFormatted = $this->callCurl($url, "GET", array($authorization), 0 );
-
-            $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
-            $result = json_decode($json, true);
-
-            return $result;
+            do{
+                $url = "https://" . $this->sandbox . "zohoapis." . $this->location . "/crm/" . $this->version . "/" . $module . "/search?criteria=" . $criteria . "&page=" . $page . "&per_page=" . $per_page;
+                $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
+                $resultNoFormatted = $this->callCurl($url, "GET", array($authorization), 0 );
+                $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+                $result = json_decode($json, true);
+                if (!$result["error"] && isset($result["response"]["data"])){
+                    foreach ($result["response"]["data"] as $data){
+                        $datosCompletos[]=$data;
+                    }
+                }
+                $page++;
+                usleep(600000);//Pausa de 0.6s para no bloquear la API.
+            } while (isset($result["response"]["info"]["more_records"]) && $result["response"]["info"]["more_records"] == 1);
+            
+            return $datosCompletos;
         }
 
-        //TODO: Meter paginación y poner minisleep
+        //NOT TESTED
         public function listRecords($module, $page = 1, $per_page = 200, $cvid = null, $fields = null) {
 
+            $datosCompletos = array();
+            
             if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
                 $this->getAccessToken();
             }
-
-            $url = "https://" . $this->sandbox . "zohoapis." . $this->location . "/crm/" . $this->version . "/" . $module . "?page=" . $page . "&per_page=" . $per_page . "&cvid=" . $cvid . "&fields=" . $fields;
-            $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
-
-            $resultNoFormatted = $this->callCurl($url, "GET", array($authorization), 0 );
-
-            $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
-            $result = json_decode($json, true);
-
-            return $result;
+            do{
+                $url = "https://" . $this->sandbox . "zohoapis." . $this->location . "/crm/" . $this->version . "/" . $module . "?page=" . $page . "&per_page=" . $per_page . "&cvid=" . $cvid . "&fields=" . $fields;
+                $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
+                $resultNoFormatted = $this->callCurl($url, "GET", array($authorization), 0 );
+                $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+                $result = json_decode($json, true);
+                if (!$result["error"] && isset($result["response"]["data"])){
+                    foreach ($result["response"]["data"] as $data){
+                        $datosCompletos[]=$data;
+                    }
+                }
+                $page++;
+                usleep(600000);//Pausa de 0.6s para no bloquear la API.
+            } while (isset($result["response"]["info"]["more_records"]) && $result["response"]["info"]["more_records"] == 1);
+            
+            return $datosCompletos;
         }
 
         public function coql($select_query) {
