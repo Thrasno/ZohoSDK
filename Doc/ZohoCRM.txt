@@ -1,0 +1,173 @@
+=======================================================
+Clase: ZohoCRM_SDK
+=======================================================
+
+Propiedades:
+------------
+
+- private $refreshToken
+  - Getter: getRefreshToken()
+  - Setter: No hay setter, ya que se establece en el constructor
+
+- private $client_id
+  - No tiene getter ni setter
+
+- private $client_secret
+  - No tiene getter ni setter
+
+- private $access_token
+  - No tiene getter ni setter
+
+- private $userIdentifier
+  - Getter: getUserIdentifier()
+  - Setter: No hay setter, ya que se establece en el constructor
+
+- private $location
+  - No tiene getter ni setter
+
+- private $expires_accesstoken
+  - No tiene getter ni setter
+
+- private $version
+  - No tiene getter ni setter
+
+- private $sandbox
+  - Getter: No hay getter
+  - Setter: setSandbox($sSandbox)
+
+Métodos:
+--------
+
+1. __construct($client_id, $client_secret, $refreshToken, $access_token, $userIdentifier, $location, $version = null)
+   Parámetros:
+   - $client_id (string)
+   - $client_secret (string)
+   - $refreshToken (string)
+   - $access_token (string)
+   - $userIdentifier (string)
+   - $location (string)
+   - $version (string|null, opcional)
+
+2. setSandbox($sSandbox = false)
+   Parámetros:
+   - $sSandbox (bool, opcional)
+
+3. getAccessToken()
+   Retorno: string
+
+4. getRefreshToken()
+   Retorno: string
+
+5. getUserIdentifier()
+   Retorno: string
+
+6. serverlessFunctions($functionName, $vars = array())
+   Parámetros:
+   - $functionName (string)
+   - $vars (array, opcional)
+   Retorno: array
+
+7. delete($module, $id)
+   Parámetros:
+   - $module (string)
+   - $id (string)
+   Retorno: array
+
+8. bulkDelete($module, $ids)
+   Parámetros:
+   - $module (string)
+   - $ids (array)
+   Retorno: array
+
+9. bulkInsert($module, $records, $trigger = array())
+   Parámetros:
+   - $module (string)
+   - $records (array)
+   - $trigger (array, opcional)
+   Retorno: array
+
+10. updateRecord($module, $id, $record, $trigger = array())
+    Parámetros:
+    - $module (string)
+    - $id (string)
+    - $record (array)
+    - $trigger (array, opcional)
+    Retorno: array
+
+11. updateRecords($module, $records, $trigger = array())
+    Parámetros:
+    - $module (string)
+    - $records (array)
+    - $trigger (array, opcional)
+    Retorno: array
+
+12. getVariables()
+    Retorno: array
+
+13. getVariable($idVar, $idGroup)
+    Parámetros:
+    - $idVar (string)
+    - $idGroup (string)
+    Retorno: array
+
+14. upsertRecords($module, $records, $trigger = array(), $duplicate_check_fields = array())
+    Parámetros:
+    - $module (string)
+    - $records (array)
+    - $trigger (array, opcional)
+    - $duplicate_check_fields (array, opcional)
+    Retorno: array
+
+15. getSpecificRecord($module, $recordId)
+    Parámetros:
+    - $module (string)
+    - $recordId (string)
+    Retorno: array
+
+16. searchRecords($module, $criteria, $page = 1, $per_page = 200)
+    Parámetros:
+    - $module (string)
+    - $criteria (string)
+    - $page (int, opcional)
+    - $per_page (int, opcional)
+    Retorno: array
+
+17. listRecords($module, $page = 1, $per_page = 200, $cvid = null, $fields = null)
+    Parámetros:
+    - $module (string)
+    - $page (int, opcional)
+    - $per_page (int, opcional)
+    - $cvid (string|null, opcional)
+    - $fields (string|null, opcional)
+    Retorno: array
+
+18. coql($select_query)
+    Parámetros:
+    - $select_query (string)
+    Retorno: array
+
+19. listAttachments($module, $recordId)
+    Parámetros:
+    - $module (string)
+    - $recordId (string)
+    Retorno: array
+
+20. uploadAttachmentURL($module, $recordId, $urlAttach, $name)
+    Parámetros:
+    - $module (string)
+    - $recordId (string)
+    - $urlAttach (string)
+    - $name (string)
+    Retorno: array
+
+21. sendMail($module, $recordId, $data)
+    Parámetros:
+    - $module (string)
+    - $recordId (string)
+    - $data (array)
+    Retorno: array
+
+22. getAllUsersFromGroup($idGrupo)
+    Parámetros:
+    - $idGrupo (string)
+    Retorno: array

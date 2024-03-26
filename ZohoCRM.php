@@ -96,7 +96,7 @@
 
         public function serverlessFunctions($functionName, $vars = array()) {
 
-            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time() && false) {
+            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
                 $this->getAccessToken();
             }
 
@@ -117,7 +117,7 @@
 
         public function delete($module, $id) {
 
-            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time() && false) {
+            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
                 $this->getAccessToken();
             }
 
@@ -134,7 +134,7 @@
 
         public function bulkDelete($module, $ids) {
 
-            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time() && false) {
+            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
                 $this->getAccessToken();
             }
 
@@ -159,13 +159,12 @@
         }
 
         public function bulkInsert($module, $records, $trigger = array()) {
-
             $data = json_encode(array("data" => $records, "trigger" => $trigger));
-            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time() && false) {
+            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
                 $this->getAccessToken();
             }
-
             $url = "https://" . $this->sandbox . "zohoapis." . $this->location . "/crm/" . $this->version . "/$module";
+
             $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
 
             $resultNoFormatted = $this->callCurl($url, "POST", array($authorization), 1, $data);
@@ -179,7 +178,7 @@
         public function updateRecord($module, $id, $record, $trigger = array()) {
 
             $data = json_encode(array("data" => array($record), "trigger" => $trigger));
-            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time() && false) {
+            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
                 $this->getAccessToken();
             }
 
@@ -197,7 +196,7 @@
         public function updateRecords($module, $records, $trigger = array()) {
 
             $data = json_encode(array("data" => $records, "trigger" => $trigger));
-            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time() && false) {
+            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
                 $this->getAccessToken();
             }
 
@@ -214,7 +213,7 @@
 
         public function getVariables() {
 
-            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time() && false) {
+            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
                 $this->getAccessToken();
             }
 
@@ -231,7 +230,7 @@
 
         public function getVariable($idVar, $idGroup) {
 
-            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time() && false) {
+            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
                 $this->getAccessToken();
             }
 
@@ -249,8 +248,7 @@
         public function upsertRecords($module, $records, $trigger = array(), $duplicate_check_fields = array()) {
 
             $data = json_encode(array("data" => $records, "trigger" => $trigger, "duplicate_check_fields" => $duplicate_check_fields));
-
-            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time() && false) {
+            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
                 $this->getAccessToken();
             }
 
@@ -267,7 +265,7 @@
 
         public function getSpecificRecord($module, $recordId) {
 
-            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time() && false) {
+            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
                 $this->getAccessToken();
             }
 
@@ -286,16 +284,16 @@
 
             $datosCompletos = array();
 
-            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time() && false) {
-                $this->getAccessToken();
-            }
             do{
+                if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
+                    $this->getAccessToken();
+                }
                 $url = "https://" . $this->sandbox . "zohoapis." . $this->location . "/crm/" . $this->version . "/" . $module . "/search?criteria=" . $criteria . "&page=" . $page . "&per_page=" . $per_page;
                 $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
                 $resultNoFormatted = $this->callCurl($url, "GET", array($authorization), 0 );
                 $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
                 $result = json_decode($json, true);
-                if (!$result["error"] && isset($result["data"])){
+                if (!isset($result["error"]) && isset($result["data"])){
                     foreach ($result["data"] as $data){
                         $datosCompletos[]=$data;
                     }
@@ -306,21 +304,33 @@
             
             return $datosCompletos;
         }
-
-        public function listRecords($module, $page = 1, $per_page = 200, $cvid = null, $fields = null) {
+        //CVID NOT TESTED
+        public function listRecords($module, $fields, $page = 1, $per_page = 200, $cvid = null ) {
 
             $datosCompletos = array();
-            
-            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
-                $this->getAccessToken();
-            }
+            $tokenPageNext=null;
             do{
-                $url = "https://" . $this->sandbox . "zohoapis." . $this->location . "/crm/" . $this->version . "/" . $module . "?page=" . $page . "&per_page=" . $per_page . "&cvid=" . $cvid . "&fields=" . $fields;
+                if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
+                    $this->getAccessToken();
+                }
+                if(!empty($tokenPageNext)){
+                    $url = "https://" . $this->sandbox . "zohoapis." . $this->location . "/crm/" . $this->version . "/" . $module . "?page_token=" . $tokenPageNext . "&per_page=" . $per_page;
+                }
+                else{
+                    $url = "https://" . $this->sandbox . "zohoapis." . $this->location . "/crm/" . $this->version . "/" . $module . "?page=" . $page . "&per_page=" . $per_page;
+                }
+                if(!empty($fields)){
+                    $url=$url."&fields=".$fields;
+                }
+                if(!empty($cvid)){
+                    $url=$url."&cvid=".$cvid;
+                }
                 $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
                 $resultNoFormatted = $this->callCurl($url, "GET", array($authorization), 0 );
                 $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
                 $result = json_decode($json, true);
-                if (!$result["error"] && isset($result["data"])){
+                $tokenPageNext=$result["info"]["next_page_token"];
+                if (!isset($result["error"]) && isset($result["data"])){
                     foreach ($result["data"] as $data){
                         $datosCompletos[]=$data;
                     }
@@ -422,5 +432,118 @@
             return $result;
         }
 
+        //Tested (API Version >= 3)
+        public function getRelatedRecords($module, $relatedList, $recordId, $fields, $page = 1, $per_page = 200) {
+
+            $datosCompletos = array();
+            
+            
+            do{
+                if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
+                    $this->getAccessToken();
+                }
+                $url = "https://" . $this->sandbox . "zohoapis." . $this->location . "/crm/" . $this->version . "/" . $module . "/".$recordId."/".$relatedList."?fields=".$fields."&page=" . $page . "&per_page=" . $per_page;
+                $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
+                $resultNoFormatted = $this->callCurl($url, "GET", array($authorization), 0 );
+                $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+                $result = json_decode($json, true);
+                if (!$result["error"] && isset($result["data"])){
+                    foreach ($result["data"] as $data){
+                        $datosCompletos[]=$data;
+                    }
+                }
+                $page++;
+                usleep(600000);//Pausa de 0.6s para no bloquear la API.
+            } while (isset($result["info"]["more_records"]) && $result["info"]["more_records"] == 1);
+            return $datosCompletos;
+        }
+
+        //Tested 
+        public function upsertRelatedRecords($module, $relatedList, $recordId, $relatedRecords) {
+
+            $data = json_encode(array("data" => $relatedRecords));
+
+            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
+                $this->getAccessToken();
+            }
+
+            $url = "https://" . $this->sandbox . "zohoapis." . $this->location . "/crm/" . $this->version . "/" . $module . "/".$recordId."/".$relatedList;
+            $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
+
+            $resultNoFormatted = $this->callCurl($url, "PUT", array($authorization), 1, $data);
+            $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+            $result = json_decode($json, true);
+
+            return $result;
+        }
+
+        //Tested 
+        public function getCurrencies($id = null) {
+
+            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
+                $this->getAccessToken();
+            }
+            $url = "https://" . $this->sandbox . "zohoapis." . $this->location . "/crm/" . $this->version . "/org/currencies";
+            if (!empty($id)){
+                $url = $url."/".$id;
+            }
+            $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
+            $resultNoFormatted = $this->callCurl($url, "GET", array($authorization), 0 );
+            $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+            $result = json_decode($json, true);;
+            return $result;
+        }
+
+        //Tested 
+        public function updateCurrencies($records) {
+
+            $data = json_encode(array("currencies" => $records));
+
+            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
+                $this->getAccessToken();
+            }
+            $url = "https://" . $this->sandbox . "zohoapis." . $this->location . "/crm/" . $this->version . "/org/currencies";
+            
+            $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
+            $resultNoFormatted = $this->callCurl($url, "PUT", array($authorization), 1, $data );
+            $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+            $result = json_decode($json, true);;
+            return $result;
+        }
+
+        //Tested
+        public function insertCurrencies($records) {
+
+            $data = json_encode(array("currencies" => $records));
+
+            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
+                $this->getAccessToken();
+            }
+            $url = "https://" . $this->sandbox . "zohoapis." . $this->location . "/crm/" . $this->version . "/org/currencies";
+            
+            $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
+            $resultNoFormatted = $this->callCurl($url, "POST", array($authorization), 1, $data );
+            $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+            $result = json_decode($json, true);;
+            return $result;
+        }
+
+        //Tested
+        public function getFieldsMetadata($module) {
+
+            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
+                $this->getAccessToken();
+            }
+
+            $url = "https://" . $this->sandbox . "zohoapis." . $this->location . "/crm/" . $this->version . "/settings/fields?module=".$module;
+            $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
+
+            $resultNoFormatted = $this->callCurl($url, "GET", array($authorization), 0, array());
+
+            $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+            $result = json_decode($json, true);
+
+            return $result;
+        }
     }
 ?>
