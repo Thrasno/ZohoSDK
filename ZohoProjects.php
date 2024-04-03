@@ -98,4 +98,23 @@ class ZohoProjects_SDK
         $result = json_decode($json, true);
         return $result;
     }
+
+    //NOT Tested
+    public function getTaskLayoutDetails($project)
+    {
+
+        if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
+            $this->getAccessToken();
+        }
+
+        $url = "https://projectsapi.zoho." . $this->location . "/restapi/portal/" . $this->portalID . "/projects/" . $project . "/tasklayouts";
+        var_dump($url);
+        $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
+
+        $resultNoFormatted = $this->callCurl($url, "GET", array($authorization),0);
+
+        $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+        $result = json_decode($json, true);
+        return $result;
+    }
 }

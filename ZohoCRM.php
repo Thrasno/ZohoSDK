@@ -47,7 +47,7 @@
             $url = "https://accounts.zoho." . $this->location . "/oauth/v2/token?refresh_token=" . $this->refreshToken . "&client_id=" . $this->client_id . "&client_secret=" . $this->client_secret . "&grant_type=refresh_token";
             $resultNoFormatted = $this->callCurl($url, "POST", array(), 1);
 
-            $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+            $json = preg_replace('/("[\w]+":)(-?\d+(\.\d+)?(E[-+]?\d+)?)/', '\\1"\\2"', $resultNoFormatted);
             $result = json_decode($json, true);
 
             if (isset($result["access_token"])) {
@@ -109,7 +109,7 @@
 
             $resultNoFormatted = $this->callCurl($url, "GET", array($authorization), 0);
 
-            $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+            $json = preg_replace('/("[\w]+":)(-?\d+(\.\d+)?(E[-+]?\d+)?)/', '\\1"\\2"', $resultNoFormatted);
             $result = json_decode($json, true);
 
             return $result;
@@ -126,7 +126,7 @@
             
             $resultNoFormatted = $this->callCurl($url, "DELETE", array($authorization), 0);
 
-            $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+            $json = preg_replace('/("[\w]+":)(-?\d+(\.\d+)?(E[-+]?\d+)?)/', '\\1"\\2"', $resultNoFormatted);
             $result = json_decode($json, true);
 
             return $result;
@@ -152,7 +152,7 @@
 
             $resultNoFormatted = $this->callCurl($url, "DELETE", array($authorization), 0);
 
-            $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+            $json = preg_replace('/("[\w]+":)(-?\d+(\.\d+)?(E[-+]?\d+)?)/', '\\1"\\2"', $resultNoFormatted);
             $result = json_decode($json, true);
 
             return $result;
@@ -169,7 +169,7 @@
 
             $resultNoFormatted = $this->callCurl($url, "POST", array($authorization), 1, $data);
 
-            $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+            $json = preg_replace('/("[\w]+":)(-?\d+(\.\d+)?(E[-+]?\d+)?)/', '\\1"\\2"', $resultNoFormatted);
             $result = json_decode($json, true);
 
             return $result;
@@ -187,7 +187,7 @@
 
             $resultNoFormatted = $this->callCurl($url, "PUT", array($authorization), 1, $data);
 
-            $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+            $json = preg_replace('/("[\w]+":)(-?\d+(\.\d+)?(E[-+]?\d+)?)/', '\\1"\\2"', $resultNoFormatted);
             $result = json_decode($json, true);
 
             return $result;
@@ -205,7 +205,7 @@
 
             $resultNoFormatted = $this->callCurl($url, "PUT", array($authorization), 1, $data);
 
-            $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+            $json = preg_replace('/("[\w]+":)(-?\d+(\.\d+)?(E[-+]?\d+)?)/', '\\1"\\2"', $resultNoFormatted);
             $result = json_decode($json, true);
 
             return $result;
@@ -222,7 +222,7 @@
 
             $resultNoFormatted = $this->callCurl($url, "GET", array($authorization), 0, array());
 
-            $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+            $json = preg_replace('/("[\w]+":)(-?\d+(\.\d+)?(E[-+]?\d+)?)/', '\\1"\\2"', $resultNoFormatted);
             $result = json_decode($json, true);
 
             return $result;
@@ -239,7 +239,7 @@
 
             $resultNoFormatted = $this->callCurl($url, "GET", array($authorization), 0, array());
 
-            $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+            $json = preg_replace('/("[\w]+":)(-?\d+(\.\d+)?(E[-+]?\d+)?)/', '\\1"\\2"', $resultNoFormatted);
             $result = json_decode($json, true);
 
             return $result;
@@ -257,7 +257,7 @@
 
             $resultNoFormatted = $this->callCurl($url, "POST", array($authorization), 1, $data);
 
-            $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+            $json = preg_replace('/("[\w]+":)(-?\d+(\.\d+)?(E[-+]?\d+)?)/', '\\1"\\2"', $resultNoFormatted);
             $result = json_decode($json, true);
 
             return $result;
@@ -274,7 +274,7 @@
 
             $resultNoFormatted = $this->callCurl($url, "GET", array($authorization), 0);
 
-            $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+            $json = preg_replace('/("[\w]+":)(-?\d+(\.\d+)?(E[-+]?\d+)?)/', '\\1"\\2"', $resultNoFormatted);
             $result = json_decode($json, true);
 
             return $result;
@@ -291,7 +291,7 @@
                 $url = "https://" . $this->sandbox . "zohoapis." . $this->location . "/crm/" . $this->version . "/" . $module . "/search?criteria=" . $criteria . "&page=" . $page . "&per_page=" . $per_page;
                 $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
                 $resultNoFormatted = $this->callCurl($url, "GET", array($authorization), 0 );
-                $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+                $json = preg_replace('/("[\w]+":)(-?\d+(\.\d+)?(E[-+]?\d+)?)/', '\\1"\\2"', $resultNoFormatted);
                 $result = json_decode($json, true);
                 if (!isset($result["error"]) && isset($result["data"])){
                     foreach ($result["data"] as $data){
@@ -327,7 +327,7 @@
                 }
                 $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
                 $resultNoFormatted = $this->callCurl($url, "GET", array($authorization), 0 );
-                $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+                $json = preg_replace('/("[\w]+":)(-?\d+(\.\d+)?(E[-+]?\d+)?)/', '\\1"\\2"', $resultNoFormatted);
                 $result = json_decode($json, true);
                 $tokenPageNext=$result["info"]["next_page_token"];
                 if (!isset($result["error"]) && isset($result["data"])){
@@ -355,7 +355,7 @@
 
             $resultNoFormatted = $this->callCurl($url, "POST", array($authorization), 1,  $data);
 
-            $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+            $json = preg_replace('/("[\w]+":)(-?\d+(\.\d+)?(E[-+]?\d+)?)/', '\\1"\\2"', $resultNoFormatted);
             $result = json_decode($json, true);
 
             return $result;
@@ -372,7 +372,7 @@
 
             $resultNoFormatted = $this->callCurl($url, "GET", array($authorization), 0 );
 
-            $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+            $json = preg_replace('/("[\w]+":)(-?\d+(\.\d+)?(E[-+]?\d+)?)/', '\\1"\\2"', $resultNoFormatted);
             $result = json_decode($json, true);
 
             return $result;
@@ -391,7 +391,7 @@
 
             $resultNoFormatted = $this->callCurl($url, "POST", array($authorization), 1, $data);
 
-            $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+            $json = preg_replace('/("[\w]+":)(-?\d+(\.\d+)?(E[-+]?\d+)?)/', '\\1"\\2"', $resultNoFormatted);
             $result = json_decode($json, true);
 
             return $result;
@@ -408,7 +408,7 @@
 
             $resultNoFormatted = $this->callCurl($url, "POST", array($authorization), 1, $data);
 
-            $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+            $json = preg_replace('/("[\w]+":)(-?\d+(\.\d+)?(E[-+]?\d+)?)/', '\\1"\\2"', $resultNoFormatted);
             $result = json_decode($json, true);
 
             return $result;
@@ -426,7 +426,7 @@
 
             $resultNoFormatted = $this->callCurl($url, "GET", array($authorization), 0);
 
-            $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+            $json = preg_replace('/("[\w]+":)(-?\d+(\.\d+)?(E[-+]?\d+)?)/', '\\1"\\2"', $resultNoFormatted);
             $result = json_decode($json, true);
 
             return $result;
@@ -445,7 +445,7 @@
                 $url = "https://" . $this->sandbox . "zohoapis." . $this->location . "/crm/" . $this->version . "/" . $module . "/".$recordId."/".$relatedList."?fields=".$fields."&page=" . $page . "&per_page=" . $per_page;
                 $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
                 $resultNoFormatted = $this->callCurl($url, "GET", array($authorization), 0 );
-                $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+                $json = preg_replace('/("[\w]+":)(-?\d+(\.\d+)?(E[-+]?\d+)?)/', '\\1"\\2"', $resultNoFormatted);
                 $result = json_decode($json, true);
                 if (!$result["error"] && isset($result["data"])){
                     foreach ($result["data"] as $data){
@@ -471,7 +471,7 @@
             $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
 
             $resultNoFormatted = $this->callCurl($url, "PUT", array($authorization), 1, $data);
-            $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+            $json = preg_replace('/("[\w]+":)(-?\d+(\.\d+)?(E[-+]?\d+)?)/', '\\1"\\2"', $resultNoFormatted);
             $result = json_decode($json, true);
 
             return $result;
@@ -489,8 +489,8 @@
             }
             $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
             $resultNoFormatted = $this->callCurl($url, "GET", array($authorization), 0 );
-            $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
-            $result = json_decode($json, true);;
+            $json = preg_replace('/("[\w]+":)(-?\d+(\.\d+)?(E[-+]?\d+)?)/', '\\1"\\2"', $resultNoFormatted);
+            $result = json_decode($json, true);
             return $result;
         }
 
@@ -506,7 +506,7 @@
             
             $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
             $resultNoFormatted = $this->callCurl($url, "PUT", array($authorization), 1, $data );
-            $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+            $json = preg_replace('/("[\w]+":)(-?\d+(\.\d+)?(E[-+]?\d+)?)/', '\\1"\\2"', $resultNoFormatted);
             $result = json_decode($json, true);;
             return $result;
         }
@@ -523,7 +523,7 @@
             
             $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
             $resultNoFormatted = $this->callCurl($url, "POST", array($authorization), 1, $data );
-            $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+            $json = preg_replace('/("[\w]+":)(-?\d+(\.\d+)?(E[-+]?\d+)?)/', '\\1"\\2"', $resultNoFormatted);
             $result = json_decode($json, true);;
             return $result;
         }
@@ -540,7 +540,7 @@
 
             $resultNoFormatted = $this->callCurl($url, "GET", array($authorization), 0, array());
 
-            $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+            $json = preg_replace('/("[\w]+":)(-?\d+(\.\d+)?(E[-+]?\d+)?)/', '\\1"\\2"', $resultNoFormatted);
             $result = json_decode($json, true);
 
             return $result;
