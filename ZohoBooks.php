@@ -6,40 +6,56 @@
  * @author       Francisco <francisco@conpas.net>
  *
  */
-class SDK_Books_Extension
+class ZohoBooks_SDK
 {
     public $sendMethod = "GET";
+    const TIMEFRAME_EXPIRE = 60;//Segundos para evitar la caducidad de access token por precaución
 
-    public function __construct($idOrganizacion = null, $authtoken = null, $location = "com")
-    {
-        //         echo "USE OAuth2.0 Authentication";die();
+    private $refreshToken;
+    private $client_id;
+    private $client_secret;
+    private $access_token;
+    private $location;
+    private $expires_accesstoken = 0;
+    private $version = "v3";
+    private $orgID;
+    /*$this->add_raw = false;
+    $this->add_scope = false;*/
 
-        if (version_compare(phpversion(), '5.3', '<')) {
-            $this->setError("PHP version must be greater than 5.3");
-            $this->throwException("SHOW \$userError");
+    public function __construct($client_id, $client_secret, $refreshToken, $access_token, $orgID, $location, $version = null) {
+
+        if(!extension_loaded("curl")) {
+            throw new Exception("Extension \"Curl\" not loaded.");
         }
-        if (!extension_loaded("curl")) {
-            $this->setError("Extension \"Curl\" not loaded.");
-            $this->throwException("SHOW \$userError");
-        }
-        if ($authtoken != null && $idOrganizacion != null) {
-            $this->idOrganizacion = $idOrganizacion;
-            $this->setAuthtoken($authtoken);
-            $this->scope = "booksapi";
-            $this->url = "https://books.zoho.$location/api/v3";
-        } else if ($idOrganizacion != null) {
-            $this->idOrganizacion = $idOrganizacion;
-            $this->setAuthtoken(authtoken::getAuthtoken("books"));
-            $this->scope = "booksapi";
-            $this->url = "https://books.zoho.com/api/v3";
+        $this->refreshToken = $refreshToken;
+        $this->client_id = $client_id;
+        $this->client_secret = $client_secret;
+        $this->location = $location;
+        $this->access_token = $access_token;
+        if ($version == null) {
+            $this->version = "" . $this->version . "";
         } else {
-            if (!$this->isProduction()) {
-                print('<h2>Authtoken not found<br/>Use $books = new Books ($idOrganizacion, $authtoken, $location="com");</h2>');
-            }
-            exit;
+            $this->version = $version;
         }
-        $this->add_raw = false;
-        $this->add_scope = false;
+        $this->orgID = $orgID;
+    }
+
+    public function getAccessToken() {
+
+        //Recoger acces token
+        $url = "https://accounts.zoho." . $this->location . "/oauth/v2/token?refresh_token=" . $this->refreshToken . "&client_id=" . $this->client_id . "&client_secret=" . $this->client_secret . "&grant_type=refresh_token";
+        $resultNoFormatted = $this->callCurl($url, "POST", array(), 1);
+
+        $json = preg_replace('/("\w+"):(\d+)(.\d+)*(E)*(\d+)?/', '\\1:"\\2\\3\\4\\5"', $resultNoFormatted);
+        $result = json_decode($json, true);
+
+        if (isset($result["access_token"])) {
+            $this->access_token = $result["access_token"];
+            $this->expires_accesstoken = $result["expires_in"] + time();
+        } else {
+            throw new Exception("No se ha podido recoger el access token. Curl result: " . $resultNoFormatted);
+        }
+        return $this->access_token;
     }
 
     private function callCurl($url, $customRequest, $httpHeader, $post, $postfields = array()) {
@@ -68,457 +84,123 @@ class SDK_Books_Extension
 
     }
 
-
-    /******************************************************Contacts******************************************************/
-    public function listContacts($datos)
+    public function listRecords($module,$criteria,$page = 1,$perPage = 200)
     {
-
-        $this->sendMethod = "GET";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("organization_id");
-        $notMandatory = array("contact_name", "company_name", "first_name", "last_name", "address", "email", "phone", "filter_by", "search_text", "sort_column", "page", "per_page");
-        foreach ($datos as $key => $value) {
-            if (substr($key, 0, 3) === "cf_") {
-                $notMandatory[] = $key;
+        $datosCompletos=array();
+        do{
+            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
+                $this->getAccessToken();    
             }
-        }
-        $url = $this->url . "/contacts";
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
-    }
+            $url = "https://www.zohoapis.".$this->location."/books/".$this->version."/".$module."?organization_id=".$this->orgID."&".$criteria."&page=".$page."&per_page=".$perPage;
 
-    public function getContact($datos)
-    {
-
-        $this->sendMethod = "GET";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("organization_id");
-        $notMandatory = array();
-        $url = $this->url . "/contacts/" . $datos["contacts_id"];
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
-    }
-
-    public function updateContact($datos)
-    {
-
-        $this->sendMethod = "PUT";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("JSONString", "organization_id");
-        $notMandatory = array();
-        $url = $this->url . "/contacts/" . $datos["contact_id"];
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
-    }
-
-    public function getContactCRM($datos)
-    {
-
-        $this->sendMethod = "GET";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("organization_id");
-        $notMandatory = array("zcrm_account_id", "zcrm_contact_id");
-        $url = $this->url . "/contacts";
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
-    }
-
-    /******************************************************Item******************************************************/
-    public function listItems($datos)
-    {
-
-        $this->sendMethod = "GET";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("organization_id");
-        $notMandatory = array("name", "description", "rate", "tax_id", "tax_name", "is_taxable", "tax_exemption_id", "account_id", "filter_by", "search_text", "sort_column");
-        foreach ($datos as $key => $value) {
-            if (substr($key, 0, 3) === "cf_")
-                $notMandatory[] = $key;
-        }
-        $url = $this->url . "/items";
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
-    }
-
-    public function getItem($datos)
-    {
-
-        $this->sendMethod = "GET";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("organization_id");
-        $notMandatory = array();
-        $url = $this->url . "/items/" . $datos["item_id"];
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
-    }
-
-    /******************************************************Taxes******************************************************/
-    public function listTaxes($datos = array())
-    {
-
-        $this->sendMethod = "GET";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("organization_id");
-        $notMandatory = array();
-        $url = $this->url . "/settings/taxes";
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
-    }
-
-    public function getTax($datos)
-    {
-
-        $this->sendMethod = "GET";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("organization_id");
-        $notMandatory = array();
-        $url = $this->url . "/settings/taxes/" . $datos["tax_id"];
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
-    }
-
-    public function getTaxGroup($datos)
-    {
-
-        $this->sendMethod = "GET";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("organization_id");
-        $notMandatory = array();
-        $url = $this->url . "/settings/taxgroups/" . $datos["tax_group_id"];
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
-    }
-
-    /******************************************************Bills******************************************************/
-    public function listBills($datos)
-    {
-
-        $this->sendMethod = "GET";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("organization_id");
-        $notMandatory = array("page", "per_page");
-        foreach ($datos as $key => $value) {
-            if (substr($key, 0, 3) === "cf_")
-                $notMandatory[] = $key;
-        }
-        $url = $this->url . "/bills";
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
-    }
-
-    public function getBill($datos)
-    {
-
-        $this->sendMethod = "GET";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("organization_id");
-        $notMandatory = array();
-        $url = $this->url . "/bills/" . $datos["bill_id"];
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
-    }
-
-    public function createBill($datos)
-    {
-
-        $this->sendMethod = "POST";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("JSONString", "organization_id");
-        $notMandatory = array("");
-        $url = $this->url . "/bills";
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
-    }
-
-    public function updateBill($datos)
-    {
-
-        $this->sendMethod = "PUT";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("JSONString", "organization_id");
-        $notMandatory = array("");
-        $url = $this->url . "/bills/" . $datos["bill_id"];
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
-    }
-
-    public function listBillsTemplates()
-    {
-
-        $this->sendMethod = "GET";
-        $datos = array();
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("JSONString", "organization_id");
-        $notMandatory = array();
-        $url = $this->url . "/bills/templates";
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
-    }
-
-    /******************************************************PurchaseOrders******************************************************/
-    public function createPurchaseOrder($datos)
-    {
-
-        $this->sendMethod = "POST";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("JSONString", "organization_id");
-        $notMandatory = array("");
-        $url = $this->url . "/purchaseorders";
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
-    }
-
-    /******************************************************Invoices******************************************************/
-    public function listInvoices($datos)
-    {
-
-        $this->sendMethod = "GET";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("organization_id");
-        $notMandatory = array("page", "per_page");
-        foreach ($datos as $key => $value) {
-            if (substr($key, 0, 3) === "cf_") {
-                $notMandatory[] = $key;
+            $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
+            $resultNoFormatted = $this->callCurl($url, "GET", array($authorization), 0);
+            $json = preg_replace('/("[\w]+":)(-?\d+(\.\d+)?(E[-+]?\d+)?)/', '\\1"\\2"', $resultNoFormatted);
+            $result = json_decode($json, true);
+            if ($result["code"]==0 && isset($result[$module])){
+                foreach ($result[$module] as $data){
+                    $datosCompletos[]=$data;
+                }
             }
-        }
-        $url = $this->url . "/invoices";
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
+            $page+=1;
+            usleep(6000);
+        } while (isset($result["page_context"]["has_more_page"]) && $result["page_context"]["has_more_page"] == 1);
+        
+        return $datosCompletos;
     }
 
-    public function getInvoice($datos)
+    public function listSettingsRecords($module,$page = 1,$perPage = 200)
     {
-
-        $this->sendMethod = "GET";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("organization_id");
-        $notMandatory = array();
-        $url = $this->url . "/invoices/" . $datos["invoice_id"];
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
-    }
-
-    public function createInvoice($datos)
-    {
-
-        $this->sendMethod = "POST";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("JSONString", "organization_id");
-        $notMandatory = array("");
-        $url = $this->url . "/invoices";
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
-    }
-
-    public function updateInvoice($datos)
-    {
-
-        $this->sendMethod = "PUT";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("JSONString", "organization_id");
-        $notMandatory = array("");
-        $url = $this->url . "/invoices/" . $datos["invoice_id"];
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
-    }
-
-    public function listInvoicesTemplates()
-    {
-
-        $this->sendMethod = "GET";
-        $datos = array();
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("organization_id");
-        $notMandatory = array();
-        $url = $this->url . "/invoices/templates";
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
-    }
-
-    /******************************************************chartofaccounts******************************************************/
-    public function listChartofAccounts($datos)
-    {
-
-        $this->sendMethod = "GET";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("organization_id");
-        $notMandatory = array("page", "per_page");
-        $url = $this->url . "/chartofaccounts";
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
-    }
-    public function getChartofAccounts($datos)
-    {
-
-        $this->sendMethod = "GET";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("organization_id");
-        $notMandatory = array();
-        $url = $this->url . "/chartofaccounts/" . $datos["account_id"];
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
-    }
-
-    /******************************************************CreditNotes******************************************************/
-    public function listCreditNotes($datos)
-    {
-
-        $this->sendMethod = "GET";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("organization_id");
-        $notMandatory = array("page", "per_page");
-        foreach ($datos as $key => $value) {
-            if (substr($key, 0, 3) === "cf_") {
-                $notMandatory[] = $key;
+        $datosCompletos=array();
+        do{
+            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
+                $this->getAccessToken();    
             }
+            $url = "https://www.zohoapis.".$this->location."/books/".$this->version."/settings/".$module."?organization_id=".$this->orgID."&page=".$page."&per_page=".$perPage;
+
+            $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
+            $resultNoFormatted = $this->callCurl($url, "GET", array($authorization), 0);
+            $json = preg_replace('/("[\w]+":)(-?\d+(\.\d+)?(E[-+]?\d+)?)/', '\\1"\\2"', $resultNoFormatted);
+            $result = json_decode($json, true);
+            if ($result["code"]==0 && isset($result[$module])){
+                foreach ($result[$module] as $data){
+                    $datosCompletos[]=$data;
+                }
+            }
+            $page+=1;
+            usleep(6000);
+        } while (isset($result["page_context"]["has_more_page"]) && $result["page_context"]["has_more_page"] == 1);
+        
+        return $datosCompletos;
+    }
+
+    public function getRecordById($module,$id)
+    {
+
+        if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
+            $this->getAccessToken();    
         }
-        $url = $this->url . "/creditnotes";
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
+        $url = "https://www.zohoapis.".$this->location."/books/".$this->version."/".$module."/".$id."?organization_id=".$this->orgID;
+
+        $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
+        $resultNoFormatted = $this->callCurl($url, "GET", array($authorization), 0);
+        $json = preg_replace('/("[\w]+":)(-?\d+(\.\d+)?(E[-+]?\d+)?)/', '\\1"\\2"', $resultNoFormatted);
+        $result = json_decode($json, true);
+        
+        return $result;
     }
 
-    public function getCreditNote($datos)
+    public function getSettingsRecordById($module,$id)
     {
 
-        $this->sendMethod = "GET";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("organization_id");
-        $notMandatory = array();
-        $url = $this->url . "/creditnotes/" . $datos["creditnote_id"];
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
-    }
-
-    public function updateCreditNote($datos)
-    {
-
-        $this->sendMethod = "PUT";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("JSONString", "organization_id");
-        $notMandatory = array("");
-        $url = $this->url . "/creditnotes/" . $datos["creditnote_id"];
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
-    }
-
-    /******************************************************VendorCredits******************************************************/
-    public function listVendorCredits($datos)
-    {
-
-        $this->sendMethod = "GET";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("organization_id");
-        $notMandatory = array("page", "per_page");
-        foreach ($datos as $key => $value) {
-            if (substr($key, 0, 3) === "cf_")
-                $notMandatory[] = $key;
+        if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
+            $this->getAccessToken();    
         }
-        $url = $this->url . "/vendorcredits";
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
+        $url = "https://www.zohoapis.".$this->location."/books/".$this->version."/settings/".$module."/".$id."?organization_id=".$this->orgID;
+
+        $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
+        $resultNoFormatted = $this->callCurl($url, "GET", array($authorization), 0);
+        $json = preg_replace('/("[\w]+":)(-?\d+(\.\d+)?(E[-+]?\d+)?)/', '\\1"\\2"', $resultNoFormatted);
+        $result = json_decode($json, true);
+        
+        return $result;
     }
 
-    public function getVendorCredit($datos)
-    {
+    public function updateRecordById($module,$id,$data){
 
-        $this->sendMethod = "GET";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("organization_id");
-        $notMandatory = array();
-        $url = $this->url . "/vendorcredits/" . $datos["vendor_credit_id"];
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
-    }
-
-    public function updateVendorCredit($datos)
-    {
-
-        $this->sendMethod = "PUT";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("JSONString", "organization_id");
-        $notMandatory = array("");
-        $url = $this->url . "/vendorcredits/" . $datos["vendor_credit_id"];
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
-    }
-
-    /******************************************************Expenses******************************************************/
-    public function listExpenses($datos)
-    {
-
-        $this->sendMethod = "GET";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("organization_id");
-        $notMandatory = array("page", "per_page");
-        foreach ($datos as $key => $value) {
-            if (substr($key, 0, 3) === "cf_")
-                $notMandatory[] = $key;
+        if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
+            $this->getAccessToken();    
         }
-        $url = $this->url . "/expenses";
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
+
+        $url = "https://www.zohoapis.".$this->location."/books/".$this->version."/".$module."/".$id."?organization_id=".$this->orgID;
+
+        $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
+        $content = "Content-Type: application/json";
+
+        $resultNoFormatted = $this->callCurl($url, "PUT", array($authorization,$content), 0,json_encode($data));
+        $json = preg_replace('/("[\w]+":)(-?\d+(\.\d+)?(E[-+]?\d+)?)/', '\\1"\\2"', $resultNoFormatted);
+        $result = json_decode($json, true);
+        
+        return $result;
     }
 
-    public function getExpense($datos)
-    {
+    public function createRecord($module,$data){
 
-        $this->sendMethod = "GET";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("organization_id");
-        $notMandatory = array();
-        $url = $this->url . "/expenses/" . $datos["expense_id"];
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
-    }
-
-    public function updateExpense($datos)
-    {
-
-        $this->sendMethod = "PUT";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("JSONString", "organization_id");
-        $notMandatory = array("");
-        $url = $this->url . "/expenses/" . $datos["expense_id"];
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
-    }
-
-    /******************************************************customerPayments******************************************************/
-    public function listCustomerPayments($datos)
-    {
-
-        $this->sendMethod = "GET";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("organization_id");
-        $notMandatory = array("customer_id", "search_text", "sort_column", "filter_by", "payment_mode", "notes", "amount", "date", "reference_number", "customer_name", "page", "per_page");
-        foreach ($datos as $key => $value) {
-            if (substr($key, 0, 3) === "cf_")
-                $notMandatory[] = $key;
+        if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
+            $this->getAccessToken();    
         }
-        $url = $this->url . "/customerpayments";
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
+
+        $url = "https://www.zohoapis.".$this->location."/books/".$this->version."/".$module."?organization_id=".$this->orgID;
+
+        $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
+        $content = "Content-Type: application/json";
+
+        $resultNoFormatted = $this->callCurl($url, "POST", array($authorization,$content), 1,json_encode($data));
+        $json = preg_replace('/("[\w]+":)(-?\d+(\.\d+)?(E[-+]?\d+)?)/', '\\1"\\2"', $resultNoFormatted);
+        $result = json_decode($json, true);
+        
+        return $result;
     }
 
-    public function updateCustomerPayment($datos)
-    {
 
-        $this->sendMethod = "PUT";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("JSONString", "organization_id");
-        $notMandatory = array("");
-        $url = $this->url . "/customerpayments/" . $datos["payment_id"];
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
-    }
-
-    /******************************************************vendorPayments******************************************************/
-    public function listVendorPayments($datos)
-    {
-
-        $this->sendMethod = "GET";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("organization_id");
-        $notMandatory = array("customer_id", "search_text", "sort_column", "filter_by", "payment_mode", "notes", "amount", "date", "reference_number", "customer_name", "page", "per_page");
-        foreach ($datos as $key => $value) {
-            if (substr($key, 0, 3) === "cf_")
-                $notMandatory[] = $key;
-        }
-        $url = $this->url . "/vendorpayments";
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
-    }
-
-    public function updateVendorPayment($datos)
-    {
-
-        $this->sendMethod = "PUT";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("JSONString", "organization_id");
-        $notMandatory = array("");
-        $url = $this->url . "/vendorpayments/" . $datos["payment_id"];
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
-    }
-
-    /******************************************************bankAccounts******************************************************/
-    public function listBankAccounts($datos)
-    {
-
-        $this->sendMethod = "GET";
-        $datos["organization_id"] = $this->idOrganizacion;
-        $mandatory = array("organization_id");
-        $notMandatory = array("customer_id", "search_text", "sort_column", "filter_by", "payment_mode", "notes", "amount", "date", "reference_number", "customer_name", "page", "per_page");
-        foreach ($datos as $key => $value) {
-            if (substr($key, 0, 3) === "cf_")
-                $notMandatory[] = $key;
-        }
-        $url = $this->url . "/bankaccounts";
-        return $this->callCurl($datos, $mandatory, $notMandatory, $url, "json");
-    }
 }
