@@ -13,8 +13,9 @@
         private $expires_accesstoken = 0;
         private $owner;
         private $app;
+        private $version;
 
-        public function __construct($client_id, $client_secret, $refreshToken, $access_token, $userIdentifier, $location, $owner, $app) {
+        public function __construct($client_id, $client_secret, $refreshToken, $access_token, $userIdentifier, $location, $owner, $app, $version = "v2") {
 
             /*if(version_compare(phpversion(), '5.6', '<')) {
                 throw new Exception("PHP version must be 5.6 or higher. Used " . phpversion());
@@ -30,6 +31,7 @@
             $this->access_token = $access_token;
             $this->owner = $owner;
             $this->app = $app;
+            $this->version = $version;
         }
 
         public function getAccessToken() {
@@ -100,11 +102,11 @@
             $result = array("fields" => $fields, "message" => $message, "tasks" => $tasks);
             $data = json_encode(array("data" => $records, "result" => $result));
 
-            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time() && false) {
+            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
                 $this->getAccessToken();
             }
 
-            $url = "https://creator.zoho." . $this->location . "/api/v2/" . $this->owner . "/" . $this->app . "/form/" . $form;
+            $url = "https://creator.zoho." . $this->location . "/api/".$this->version."/" . $this->owner . "/" . $this->app . "/form/" . $form;
             $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
 
             $resultNoFormatted = $this->callCurl($url, "POST", array($authorization, "Content-Type: application/json"), 1, $data);
@@ -114,16 +116,20 @@
 
             return $result;
         }
+        //NOT TESTED
+        public function getRecords($report, $criteria, $from = 1, $limit = 200, $fieldConfig = "quick_view", $fields = null) {
 
-        //TODO: Meter paginación
-        public function getRecords($report, $criteria, $from = 1, $limit = 200) {
-
-            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time() && false) {
+            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
                 $this->getAccessToken();
             }
 
-            $url = "https://creator.zoho." . $this->location . "/api/v2/" . $this->owner . "/" . $this->app . "/report/" . $report. "?criteria=$criteria&from=$from&limit=$limit";
+            $url = "https://creator.zoho." . $this->location . "/api/".$this->version."/" . $this->owner . "/" . $this->app . "/report/" . $report. "?criteria=$criteria&from=$from&limit=$limit&field_config=$fieldConfig";
+            if ($fields != null && $fields != ""){
+                $url = $url."&fields=$fields";
+            }
+
             $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
+
 
             $resultNoFormatted = $this->callCurl($url, "GET", array($authorization, "Content-Type: application/json"), 0);
 
@@ -135,11 +141,11 @@
 
         public function getRecord($report, $id) {
 
-            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time() && false) {
+            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
                 $this->getAccessToken();
             }
 
-            $url = "https://creator.zoho." . $this->location . "/api/v2/" . $this->owner . "/" . $this->app . "/report/" . $report. "/$id";
+            $url = "https://creator.zoho." . $this->location . "/api/".$this->version."/" . $this->owner . "/" . $this->app . "/report/" . $report. "/$id";
             $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
 
             $resultNoFormatted = $this->callCurl($url, "GET", array($authorization, "Content-Type: application/json"), 0);
@@ -155,11 +161,11 @@
             $result = array("fields" => $fields, "message" => $message, "tasks" => $tasks);
             $data = json_encode(array("data" => $record, "result" => $result));
 
-            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time() && false) {
+            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
                 $this->getAccessToken();
             }
 
-            $url = "https://creator.zoho." . $this->location . "/api/v2/" . $this->owner . "/" . $this->app . "/report/" . $report. "/$id";
+            $url = "https://creator.zoho." . $this->location . "/api/".$this->version."/" . $this->owner . "/" . $this->app . "/report/" . $report. "/$id";
 
             $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
 
@@ -177,11 +183,11 @@
             $result = array("fields" => $fields, "message" => $message, "tasks" => $tasks);
             $data = json_encode(array("criteria" => $criteria, "data" => $data, "result" => $result));
 
-            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time() && false) {
+            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
                 $this->getAccessToken();
             }
 
-            $url = "https://creator.zoho." . $this->location . "/api/v2/" . $this->owner . "/" . $this->app . "/report/" . $report . "?process_until_limit=$process_until_limit";
+            $url = "https://creator.zoho." . $this->location . "/api/".$this->version."/" . $this->owner . "/" . $this->app . "/report/" . $report . "?process_until_limit=$process_until_limit";
             $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
 
 
@@ -199,11 +205,11 @@
             $result = array("message" => $message, "tasks" => $tasks);
             $data = json_encode(array( "criteria" => $criteria, "result" => $result));
 
-            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time() && false) {
+            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
                 $this->getAccessToken();
             }
 
-            $url = "https://creator.zoho." . $this->location . "/api/v2/" . $this->owner . "/" . $this->app . "/report/" . $report . "?process_until_limit=$process_until_limit";
+            $url = "https://creator.zoho." . $this->location . "/api/".$this->version."/" . $this->owner . "/" . $this->app . "/report/" . $report . "?process_until_limit=$process_until_limit";
             $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
 
             $resultNoFormatted = $this->callCurl($url, "DELETE", array($authorization, "Content-Type: application/json"), 1, $data);
@@ -218,11 +224,11 @@
 
             $data = array("file" => $file);
 
-            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time() && false) {
+            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
                 $this->getAccessToken();
             }
 
-            $url = "https://creator.zoho." . $this->location . "/api/v2/" . $this->owner . "/" . $this->app . "/report/$report/$idRecord/$campoUpload/upload";
+            $url = "https://creator.zoho." . $this->location . "/api/".$this->version."/" . $this->owner . "/" . $this->app . "/report/$report/$idRecord/$campoUpload/upload";
             $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
 
             $resultNoFormatted = $this->callCurl($url, "POST", array($authorization), 1, $data);
@@ -235,11 +241,11 @@
 
         public function downloadFile($report, $idRecord, $campoUpload) {
 
-            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time() && false) {
+            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
                 $this->getAccessToken();
             }
 
-            $url = "https://creator.zoho." . $this->location . "/api/v2/" . $this->owner . "/" . $this->app . "/report/$report/$idRecord/$campoUpload/download";
+            $url = "https://creator.zoho." . $this->location . "/api/".$this->version."/" . $this->owner . "/" . $this->app . "/report/$report/$idRecord/$campoUpload/download";
             $authorization = "Authorization: Zoho-oauthtoken " . $this->access_token;
             $resultNoFormatted = $this->callCurl($url, "GET", array($authorization), 0);
 

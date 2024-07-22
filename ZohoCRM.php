@@ -304,7 +304,7 @@
             
             return $datosCompletos;
         }
-        //CVID NOT TESTED
+
         public function listRecords($module, $fields, $page = 1, $per_page = 200, $cvid = null ) {
 
             $datosCompletos = array();

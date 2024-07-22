@@ -77,7 +77,7 @@
 
         public function getOrganizations() {
 
-            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time() && false) {
+            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
                 $this->getAccessToken();
             }
 
@@ -100,7 +100,7 @@
 
         public function exportData($viewId, $config = array()) {
 
-            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time() && false) {
+            if ($this->expires_accesstoken - self::TIMEFRAME_EXPIRE <= time()) {
                 $this->getAccessToken();
             }
 
